@@ -29,6 +29,7 @@ int main(int argc, char **argv){
 
   yan::Kitti360StereoImagePub kitti360_img_pub(nh, pnh, dataset_root, sequence);
   yan::Kitti360Velodyne64LidarPub kitti360_velodyne64_pub(nh, pnh, dataset_root, sequence);
+  yan::Kitti360GroudTruthPub kitti360_gt_pub(nh, pnh, dataset_root, sequence);
 
   string line;
   size_t frame_idx = 0;
@@ -38,7 +39,7 @@ int main(int argc, char **argv){
     
     std_msgs::Header header;
     header.stamp = ros::Time().fromSec(dttt(line));
-    header.frame_id = "/kitti360_raw_data";
+    header.frame_id = "/world";
     
     // if(!kitti360_img_pub.publish(header, frame_idx)){
     //   ROS_INFO("System error : please check log.");
@@ -48,6 +49,7 @@ int main(int argc, char **argv){
     // }
     kitti360_img_pub.publish(header, frame_idx);
     kitti360_velodyne64_pub.publish(header, frame_idx);
+    kitti360_gt_pub.publish(header, frame_idx);
     frame_idx++;
     ros::spinOnce();
     loop_rate.sleep();

@@ -24,6 +24,41 @@ static inline std::vector<T> read_lidar_data(const std::string lidar_data_path)
     lidar_data_file.read(reinterpret_cast<char*>(&lidar_data_buffer[0]), num_elements*sizeof(T));
     return lidar_data_buffer;
 }
+template <typename POSE_TYPE>
+void read_pose_file(std::ifstream &file, POSE_TYPE &cache, int r, int c){
+  std::string line, s;
+  std::getline(file, line);
+  std::stringstream ss(line);
+  int idx;
+  Eigen::Matrix4d p = Eigen::Matrix4d::Identity();
+  std::getline(ss, s, ' '); idx = stoi(s) - 1;
+  for(int i = 0; i < r; ++i){
+    for(int j = 0; j < c; ++j){
+      getline(ss, s, ' ');
+      p(i, j) = std::stod(s);
+    }
+  }
+  Eigen::Isometry3d ret = Eigen::Isometry3d::Identity();
+  ret.rotate(p.topLeftCorner<3, 3>());
+  ret.pretranslate(p.topRightCorner<3, 1>());
+  // ret now is cam0--->world, inverse is world---->cam0
+  // as in pub method, choose lidar as world
+  cache = std::make_pair(idx, ret);
+}
+template <typename POSE_TYPE>
+void read_calib_file(std::ifstream &file, POSE_TYPE &cache, int r, int c){
+  std::string line, s;
+  std::getline(file, line);
+  std::stringstream ss(line);
+  Eigen::Isometry3d ret = Eigen::Isometry3d::Identity();
+  for(int i = 0; i < r; ++i){
+    for(int j = 0; j < c; ++j){
+      getline(ss, s, ' ');
+      ret(i, j) = std::stod(s);
+    }
+  }
+  cache = ret;
+}
 // ----------------------------------Data Process end----------------------------------------------------------------------
 
 

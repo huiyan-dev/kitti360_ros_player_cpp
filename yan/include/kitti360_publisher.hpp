@@ -18,7 +18,9 @@
 #include <sensor_msgs/PointCloud2.h>
 // tools for handle data
 #include "yan_utility.hpp"
-
+// ros nav_msgs
+#include <nav_msgs/Odometry.h>
+#include <nav_msgs/Path.h>
 namespace yan{
   // These classes can use abstract class to rebuild structure
 
@@ -206,5 +208,127 @@ namespace yan{
   };
   class Kitti360SICKLidarPub{
     
+  };
+  class Kitti360GroudTruthPub{
+
+  private:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    ros::NodeHandle& nh_;
+    ros::NodeHandle& pnh_;
+    std::string dataset_root_;
+    std::string sequence_;
+
+    // calib_cam_to_pose_[i] : cam{i} to gps/imu coordinate
+    // cam0 and cam1 is perspective, and cam2 and cam3 is fisheye camera.
+    std::vector<Eigen::Isometry3d,
+           Eigen::aligned_allocator<Eigen::Isometry3d>> calib_cam_to_pose_;
+    Eigen::Isometry3d calib_cam_to_velo_;
+    Eigen::Isometry3d calib_sick_to_velo_;
+    // calib_cam_intrinsics_[i] : cam{i} intrinsics
+    Eigen::Isometry3d calib_cam_intrinsics_;
+    // camera coordinate and lidar coordinate are different 
+    // see http://www.cvlibs.net/datasets/kitti-360/documentation.php
+    Eigen::Quaterniond q_transform_;
+    typedef std::pair<int, Eigen::Isometry3d> pose_cache_type_;
+    pose_cache_type_ pose_cache_;
+    // The world origin of Kitti360 Datasets is in the center of all sequences
+    // I user fisrt frame pose in current sequence as new world origin as all things done in a single sequence
+    Eigen::Isometry3d init_pose_;
+    // !!!  frame index may not cotinuous, some movement is too small than threhould  !!!!
+    // use pose_cache_ as current pose
+    int cur_frame_id_ = -1;
+    // Each line has 17 numbers, the first number is an integer denoting the frame index.
+    // The rest is a 4x4 matrix denoting the rigid body transform from the rectified perspective
+    // camera coordinates to the world coordinate system.
+    std::string cam0_to_world_path_;
+    std::ifstream cam0_to_world_file_;
+    // gps / imu coordinate to world : Each line has 13 numbers, the first number is an integer 
+    // denoting the frame index. The rest is a 3x4 matrix denoting the rigid body transform from 
+    // GPU/IMU coordinates to a world coordinate system.
+    std::string imu_to_world_path_;
+    std::ifstream imu_to_world_file_;
+    std::string oxts_root_path_;
+
+    ros::Publisher gt_odom_pub_;
+    ros::Publisher gt_path_pub_;
+    nav_msgs::Path global_pathGT_;
+    nav_msgs::Odometry odomGT_;
+
+  public:
+
+    ~Kitti360GroudTruthPub(){}
+
+    Kitti360GroudTruthPub(ros::NodeHandle &nh, ros::NodeHandle &pnh)
+          : nh_(nh), pnh_(pnh) {
+      gt_odom_pub_ = nh.advertise<nav_msgs::Odometry>("odometry_gt", 10);
+      gt_path_pub_ = nh.advertise<nav_msgs::Path>("path_gt", 10);
+    }
+
+
+    Kitti360GroudTruthPub(ros::NodeHandle &nh, ros::NodeHandle &pnh,
+                               std::string &dataset_root, std::string &sequence)
+          : nh_(nh), pnh_(pnh), dataset_root_(dataset_root), sequence_(sequence) {
+      gt_odom_pub_ = nh.advertise<nav_msgs::Odometry>("odometry_gt", 10);
+      gt_path_pub_ = nh.advertise<nav_msgs::Path>("path_gt", 10);
+      // 读取 calib_cam_to_velo_
+      std::string cam_to_velo_path = dataset_root + "data_calib_poses/calibration/calib_cam_to_velo.txt";
+      std::ifstream calib_cam_to_velo_file_(cam_to_velo_path, std::ifstream::in);
+      read_calib_file<Eigen::Isometry3d>(calib_cam_to_velo_file_, calib_cam_to_velo_, 3, 4);
+      // cam0 to world(kitti360 world origin is the center of all sequences)
+      cam0_to_world_path_ = dataset_root + "data_calib_poses/data_poses/" + sequence + "cam0_to_world.txt";
+      cam0_to_world_file_ = move(std::ifstream(cam0_to_world_path_, std::ifstream::in));
+      // cam0 to imu/gps
+      imu_to_world_path_ = dataset_root + "data_calib_poses/data_poses/" + sequence + "cam0_to_pose.txt";
+      imu_to_world_file_ = move(std::ifstream(imu_to_world_path_, std::ifstream::in));
+      // 读取第一个位姿, 因为kitti360里位姿不一定是连续的, 有些时刻运动量太小而被忽略
+      read_pose_file<pose_cache_type_>(cam0_to_world_file_, pose_cache_, 4, 4);
+      // pose_cache_.second is cam_to_world, convert to velodyne
+      init_pose_ = pose_cache_.second;
+
+      // TODO: imu 数据暂时还未处理
+      oxts_root_path_ = dataset_root + "data_calib_poses/data_poses/" + sequence + "oxts/";
+
+      // select velodyne coordinate as world coordinate
+      odomGT_.header.frame_id = "/world";
+      global_pathGT_.header.frame_id = "/world";
+
+      Eigen::Matrix3d R_transform;
+      R_transform << 0, 0, 1, -1, 0, 0, 0, -1, 0;
+      q_transform_ = Eigen::Quaterniond(R_transform);
+    }
+    bool publish(std_msgs::Header &header, size_t &frame_index){
+      std::string line, tmp;
+      odomGT_.header.stamp = header.stamp;
+
+      if(pose_cache_.first < frame_index) {
+        read_pose_file<pose_cache_type_>(cam0_to_world_file_, pose_cache_, 4, 4);
+      }
+      // change world coordinate
+      // pose_cache_.second = init_pose_.inverse() * pose_cache_.second;
+      // note : world origin has move to the center of velodyne frame 0
+      // velo ----> world(frame 0 center)
+      Eigen::Quaterniond q_w_i(pose_cache_.second.rotation());
+      Eigen::Quaterniond q_w_velo = q_transform_ * Eigen::Quaterniond(init_pose_.rotation().inverse()) * q_w_i;
+      // q_w_cam0 = Eigen::Quaterniond(init_pose_.data()).inverse() * q_w_cam0;
+      Eigen::Vector3d t(q_transform_ * Eigen::Quaterniond(init_pose_.rotation().inverse()) * (pose_cache_.second.translation() - init_pose_.translation()));
+
+      odomGT_.pose.pose.orientation.x = q_w_velo.x();
+      odomGT_.pose.pose.orientation.y = q_w_velo.y();
+      odomGT_.pose.pose.orientation.z = q_w_velo.z();
+      odomGT_.pose.pose.orientation.w = q_w_velo.w();
+      odomGT_.pose.pose.position.x = t(0);
+      odomGT_.pose.pose.position.y = t(1);
+      odomGT_.pose.pose.position.z = t(2);
+      gt_odom_pub_.publish(odomGT_);
+
+      geometry_msgs::PoseStamped poseGT;
+      poseGT.header.stamp = odomGT_.header.stamp;
+      poseGT.pose = odomGT_.pose.pose;
+      global_pathGT_.header.stamp = header.stamp;
+      global_pathGT_.poses.push_back(poseGT);
+      gt_path_pub_.publish(global_pathGT_);
+    }
+
   };
 }

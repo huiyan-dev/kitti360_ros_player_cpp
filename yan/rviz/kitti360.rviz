@@ -6,10 +6,10 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /Kitti360RawData1
-        - /Kitti360RawData1/LidarRawPoints1
         - /Kitti360RawData1/LidarRawPoints1/Status1
         - /Kitti360RawData1/Axes1
+        - /Odometry1
+        - /Path1
       Splitter Ratio: 0.5271739363670349
     Tree Height: 363
   - Class: rviz/Selection
@@ -85,15 +85,72 @@ Visualization Manager:
           Length: 2
           Name: Axes
           Radius: 0.4000000059604645
-          Reference Frame: kitti360_raw_data
+          Reference Frame: world
           Value: true
       Enabled: true
       Name: Kitti360RawData
+    - Angle Tolerance: 0.10000000149011612
+      Class: rviz/Odometry
+      Covariance:
+        Orientation:
+          Alpha: 0.5
+          Color: 255; 255; 127
+          Color Style: Unique
+          Frame: Local
+          Offset: 1
+          Scale: 1
+          Value: true
+        Position:
+          Alpha: 0.30000001192092896
+          Color: 204; 51; 204
+          Scale: 1
+          Value: true
+        Value: true
+      Enabled: true
+      Keep: 100
+      Name: Odometry
+      Position Tolerance: 0.10000000149011612
+      Shape:
+        Alpha: 1
+        Axes Length: 1
+        Axes Radius: 0.10000000149011612
+        Color: 255; 25; 0
+        Head Length: 0.30000001192092896
+        Head Radius: 0.10000000149011612
+        Shaft Length: 1
+        Shaft Radius: 0.05000000074505806
+        Value: Arrow
+      Topic: /odometry_gt
+      Unreliable: false
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 239; 41; 41
+      Enabled: true
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.30000001192092896
+      Line Style: Lines
+      Line Width: 0.029999999329447746
+      Name: Path
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.029999999329447746
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
+      Topic: /path_gt
+      Unreliable: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 0; 0; 0
     Default Light: true
-    Fixed Frame: kitti360_raw_data
+    Fixed Frame: world
     Frame Rate: 10
   Name: root
   Tools:
@@ -117,25 +174,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 35.17053985595703
+      Distance: 1170.5999755859375
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 3.5833446979522705
-        Y: -0.006095454096794128
-        Z: -0.635525643825531
+        X: 227.58665466308594
+        Y: -364.3507995605469
+        Z: 235.90850830078125
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.3153991103172302
+      Pitch: 1.1653984785079956
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.1604790687561035
+      Yaw: 2.8004720211029053
     Saved: ~
 Window Geometry:
   Displays:
