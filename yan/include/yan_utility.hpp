@@ -38,7 +38,7 @@ void read_pose_file(std::ifstream &file, POSE_TYPE &cache, int r, int c){
       p(i, j) = std::stod(s);
     }
   }
-  Eigen::Isometry3d ret = Eigen::Isometry3d::Identity();
+  POSE_TYPE ret = POSE_TYPE::Identity();
   ret.rotate(p.topLeftCorner<3, 3>());
   ret.pretranslate(p.topRightCorner<3, 1>());
   // ret now is cam0--->world, inverse is world---->cam0
@@ -50,7 +50,7 @@ void read_calib_file(std::ifstream &file, POSE_TYPE &cache, int r, int c){
   std::string line, s;
   std::getline(file, line);
   std::stringstream ss(line);
-  Eigen::Isometry3d ret = Eigen::Isometry3d::Identity();
+  POSE_TYPE ret = POSE_TYPE::Identity();
   for(int i = 0; i < r; ++i){
     for(int j = 0; j < c; ++j){
       getline(ss, s, ' ');
