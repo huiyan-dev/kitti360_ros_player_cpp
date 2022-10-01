@@ -102,8 +102,8 @@ namespace yan{
       left_img_root_ss << dataset_root_ << "data_2d_raw/" << sequence_ << "image_00/data_rect/" << suffix.str();
       right_img_root_ss << dataset_root_ << "data_2d_raw/" << sequence_ << "image_01/data_rect/"  << suffix.str();
 
-      cv::Mat left_img = cv::imread(left_img_root_ss.str(), CV_LOAD_IMAGE_GRAYSCALE);
-      cv::Mat right_img = cv::imread(right_img_root_ss.str(), CV_LOAD_IMAGE_GRAYSCALE);
+      cv::Mat left_img = cv::imread(left_img_root_ss.str(), cv::IMREAD_GRAYSCALE);
+      cv::Mat right_img = cv::imread(right_img_root_ss.str(), cv::IMREAD_GRAYSCALE);
 
       sensor_msgs::ImageConstPtr rosmsg_left_img_cptr_ 
                 = cv_bridge::CvImage(header, "mono8", left_img).toImageMsg();
@@ -233,9 +233,9 @@ namespace yan{
     typedef std::pair<int, Eigen::Isometry3d> pose_cache_type_;
     pose_cache_type_ pose_cache_;
     // The world origin of Kitti360 Datasets is in the center of all sequences
-    // I user fisrt frame pose in current sequence as new world origin as all things done in a single sequence
+    // I use fisrt frame pose in current sequence as new world origin as all things done in a single sequence
     Eigen::Isometry3d init_pose_;
-    // !!!  frame index may not cotinuous, some movement is too small than threhould  !!!!
+    // !!!  frame index may not continuous, sometime movement is too smaller threshold  !!!!
     // use pose_cache_ as current pose
     int cur_frame_id_ = -1;
     // Each line has 17 numbers, the first number is an integer denoting the frame index.
@@ -272,26 +272,26 @@ namespace yan{
       gt_odom_pub_ = nh.advertise<nav_msgs::Odometry>("odometry_gt", 10);
       gt_path_pub_ = nh.advertise<nav_msgs::Path>("path_gt", 10);
       // 读取 calib_cam_to_velo_
-      std::string cam_to_velo_path = dataset_root + "data_calib_poses/calibration/calib_cam_to_velo.txt";
+      std::string cam_to_velo_path = dataset_root + "calibration/calib_cam_to_velo.txt";
       std::ifstream calib_cam_to_velo_file_(cam_to_velo_path, std::ifstream::in);
       read_calib_file<Eigen::Isometry3d>(calib_cam_to_velo_file_, calib_cam_to_velo_, 3, 4);
       // cam0 to world(kitti360 world origin is the center of all sequences)
-      cam0_to_world_path_ = dataset_root + "data_calib_poses/data_poses/" + sequence + "cam0_to_world.txt";
+      cam0_to_world_path_ = dataset_root + "data_poses/" + sequence + "cam0_to_world.txt";
       cam0_to_world_file_ = move(std::ifstream(cam0_to_world_path_, std::ifstream::in));
       // cam0 to imu/gps
-      imu_to_world_path_ = dataset_root + "data_calib_poses/data_poses/" + sequence + "cam0_to_pose.txt";
+      imu_to_world_path_ = dataset_root + "data_poses/" + sequence + "cam0_to_pose.txt";
       imu_to_world_file_ = move(std::ifstream(imu_to_world_path_, std::ifstream::in));
       // 读取第一个位姿, 因为kitti360里位姿不一定是连续的, 有些时刻运动量太小而被忽略
-      read_pose_file<pose_cache_type_>(cam0_to_world_file_, pose_cache_, 4, 4);
+      read_pose_file<Eigen::Isometry3d, pose_cache_type_>(cam0_to_world_file_, pose_cache_, 4, 4);
       // pose_cache_.second is cam_to_world, convert to velodyne
       init_pose_ = pose_cache_.second;
 
       // TODO: imu 数据暂时还未处理
-      oxts_root_path_ = dataset_root + "data_calib_poses/data_poses/" + sequence + "oxts/";
+      oxts_root_path_ = dataset_root + "data_poses/" + sequence + "oxts/";
 
       // select velodyne coordinate as world coordinate
-      odomGT_.header.frame_id = "/world";
-      global_pathGT_.header.frame_id = "/world";
+      odomGT_.header.frame_id = "world";
+      global_pathGT_.header.frame_id = "world";
 
       Eigen::Matrix3d R_transform;
       R_transform << 0, 0, 1, -1, 0, 0, 0, -1, 0;
@@ -302,7 +302,7 @@ namespace yan{
       odomGT_.header.stamp = header.stamp;
 
       if(pose_cache_.first < frame_index) {
-        read_pose_file<pose_cache_type_>(cam0_to_world_file_, pose_cache_, 4, 4);
+        read_pose_file<Eigen::Isometry3d, pose_cache_type_>(cam0_to_world_file_, pose_cache_, 4, 4);
       }
       // change world coordinate
       // pose_cache_.second = init_pose_.inverse() * pose_cache_.second;

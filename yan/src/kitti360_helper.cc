@@ -39,7 +39,7 @@ int main(int argc, char **argv){
     
     std_msgs::Header header;
     header.stamp = ros::Time().fromSec(dttt(line));
-    header.frame_id = "/world";
+    header.frame_id = "world";
     
     // if(!kitti360_img_pub.publish(header, frame_idx)){
     //   ROS_INFO("System error : please check log.");

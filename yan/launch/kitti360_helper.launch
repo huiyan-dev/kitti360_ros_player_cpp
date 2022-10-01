@@ -6,9 +6,9 @@
     
   -->
   <node name = "kitti360_helper" pkg = "yan-slam" type = "kitti360_helper" output = "screen" > -->
-    <param name = "dataset_root" type = "string" value = "/home/huiyan/Datasets/KITTI360/" />
+    <param name = "dataset_root" type = "string" value = "/home/huiyan/Datasets/KITTI-360/" />
     <param name = "sequence" type = "string" 
-        value = "2013_05_28_drive_0009_sync/" />
+        value = "2013_05_28_drive_0003_sync/" />
   </node>
 
   
