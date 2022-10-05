@@ -11,10 +11,16 @@ Test in ubuntu 20.04 ros noetic
 [open3d install documentation](http://www.open3d.org/docs/release/compilation.html#compilation)
 
 Boost c++
-
 ```shell
 sudo apt install libboost-all-dev
 ```
+
+## Optional
+[imu tools in rviz](https://wiki.ros.org/imu_tools)
+```shell
+sudo apt-get install ros-noetic-imu-tools
+```
+
 
 
 # Build
