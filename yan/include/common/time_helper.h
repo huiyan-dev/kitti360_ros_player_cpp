@@ -11,7 +11,7 @@ namespace kitti360 {
 
 template<typename RETURN_TYPE>
 struct DateToTimestamp{
-  DateToTimestamp(){};
+  DateToTimestamp()= default;;
   RETURN_TYPE operator()(const std::string &date) const{
     std::stringstream ss(date);
     std::vector<std::string> strs(2);
@@ -25,21 +25,21 @@ struct DateToTimestamp{
     cnt = 0;
     try{
       ss = std::stringstream(strs[0]);
-      while(cnt < 5 && getline(ss, temp, '-')) data[cnt++] = atof(temp.c_str());
+      while(cnt < 5 && getline(ss, temp, '-')) data[cnt++] = (size_t)std::stod(temp);
       ss = std::stringstream(strs[1]);
-      while(cnt < 5 && getline(ss, temp, ':')) data[cnt++] = atof(temp.c_str());
+      while(cnt < 5 && getline(ss, temp, ':')) data[cnt++] = (size_t)std::stod(temp);
       getline(ss, temp, ':');
       second_ = static_cast<RETURN_TYPE>(stod(temp));
       if(cnt != 5)  return static_cast<RETURN_TYPE>(-1);
-    } catch(std::exception e){
+    } catch(std::exception &e){
       return false;
     }
-    std::tm time_tm;
-    time_tm.tm_year = data[0] - 1900;
-    time_tm.tm_mon = data[1] - 1; // index of month from 0
-    time_tm.tm_mday = data[2];
-    time_tm.tm_hour = data[3];
-    time_tm.tm_min = data[4];
+    std::tm time_tm{};
+    time_tm.tm_year = (int)data[0] - 1900;
+    time_tm.tm_mon = (int)data[1] - 1; // index of month from 0
+    time_tm.tm_mday = (int)data[2];
+    time_tm.tm_hour = (int)data[3];
+    time_tm.tm_min = (int)data[4];
     time_tm.tm_sec = 0; // if float number than add in the tail, so it is 0 in there
     time_tm.tm_isdst = -1;
     return static_cast<RETURN_TYPE>(std::mktime(&time_tm)) + second_;

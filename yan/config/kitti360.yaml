@@ -11,5 +11,6 @@ kitti360:
 
   topic_name_left_perspective: "kitti360/data_2d_raw/left_perspective"
   topic_name_right_perspective: "kitti360/data_2d_raw/right_perspective"
+  topic_name_lidar_velo: "kitti360/data_3d_raw/lidar_velo"
 
   data_output_dir: "output/"

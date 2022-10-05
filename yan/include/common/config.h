@@ -20,14 +20,16 @@ struct Config {
   std::string data_root_dir{"/Datasets/KITTI-360/"};
   std::string data_imu_raw_dir{};
   std::string data_2d_raw_dir{};
-  std::string data_2d_raw_img_extension{};
+  std::string data_2d_raw_img_extension{".png"};
   std::string data_3d_raw_dir{};
+  std::string data_3d_raw_lidar_extension{".bin"};
   std::string sequence_number{};
   std::string sequence_sync{};
   std::string sequence_extract{};
 
   std::string topic_name_left_perspective;
   std::string topic_name_right_perspective;
+  std::string topic_name_lidar_velo;
 
   std::string frame_id_world{"world"};
   std::string frame_id_lidar{"lidar"};
@@ -42,6 +44,7 @@ struct Config {
     nh.getParam("kitti360/data_poses_oxts_extract_dir", data_imu_raw_dir); // device is oxts 3003
     nh.getParam("kitti360/data_2d_raw_dir", data_2d_raw_dir);
     nh.getParam("kitti360/data_2d_raw_img_extension", data_2d_raw_img_extension);
+    nh.getParam("kitti360/data_3d_raw_lidar_extension", data_3d_raw_lidar_extension);
     nh.getParam("kitti360/data_3d_raw_dir", data_3d_raw_dir);
     nh.getParam("kitti360/sequence_number", sequence_number);
     sequence_sync = "2013_05_28_drive_" + sequence_number + "_sync/";
@@ -49,6 +52,7 @@ struct Config {
 
     nh.getParam("kitti360/topic_name_left_perspective", topic_name_left_perspective);
     nh.getParam("kitti360/topic_name_right_perspective", topic_name_right_perspective);
+    nh.getParam("kitti360/topic_name_lidar_velo", topic_name_lidar_velo);
 
     nh.getParam("kitti360/data_output_dir", data_output_dir);
     if((home_dir.empty() && data_root_dir.empty() && data_imu_raw_dir.empty())) {  // use imu as reference
