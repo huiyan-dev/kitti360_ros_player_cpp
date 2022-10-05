@@ -1,9 +1,15 @@
 kitti360:
   data_root_dir: "/Datasets/KITTI-360/"
   data_2d_raw_dir: "data_2d_raw/"
+  data_2d_raw_img_extension: ".png"
   data_3d_raw_dir: "data_3d_raw/"
+  data_3d_raw_lidar_extension: ".bin"
   data_calibration_dir: "calibration/"
   data_poses_dir: "data_poses/"
   data_poses_oxts_extract_dir: "data_poses_oxts_extract/"
   sequence_number: "0003"
+
+  topic_name_left_perspective: "kitti360/data_2d_raw/left_perspective"
+  topic_name_right_perspective: "kitti360/data_2d_raw/right_perspective"
+
   data_output_dir: "output/"
