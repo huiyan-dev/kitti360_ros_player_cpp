@@ -23,6 +23,7 @@ int main(int argc, char **argv){
   std_msgs::Header header;
   header.frame_id = data_imu_raw_pub.frame_id_world;
 
+  // note loop_rate is 100 Hz which is imu frequency as the time resolution.
   while(ros::ok){
     cur_time = data_imu_raw_pub.GetCurrentTimestamp();
     header.stamp = ros::Time().fromSec(cur_time);

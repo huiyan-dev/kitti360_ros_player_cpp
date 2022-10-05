@@ -115,21 +115,21 @@ void Data2DRawPub::Publish(rosbag::Bag& bag) {
 Data3DRawPub::Data3DRawPub() {
   current_frame_index = 0;
   std::string sequence_dir = home_dir + data_root_dir + data_3d_raw_dir + sequence_sync;
-  ReadTimestamps(sequence_dir + "velodyne_points/timestamps.txt", velo_timestamps_);
+  ReadTimestamps(sequence_dir + "velodyne_points/timestamps.txt", lidar_velo_timestamps_);
   ReadFileNamesByDirectory(sequence_dir + "velodyne_points/data", data_3d_raw_lidar_extension, lidar_velo_filenames);
-  assert(velo_timestamps_.size() == lidar_velo_filenames.size());
-  if(velo_timestamps_.size() != lidar_velo_filenames.size()) {
+  assert(lidar_velo_timestamps_.size() == lidar_velo_filenames.size());
+  if(lidar_velo_timestamps_.size() != lidar_velo_filenames.size()) {
     LOG(ERROR) << "Missing lidar data or timestamp, please check!";
   }
-  velo_pub_ = nh.advertise<sensor_msgs::PointCloud2>(topic_name_lidar_velo, 2);
+  lidar_velo_pub_ = nh.advertise<sensor_msgs::PointCloud2>(topic_name_lidar_velo, 2);
 }
 
 void Data3DRawPub::Publish(rosbag::Bag& bag) {
   sensor_msgs::PointCloud2 lidar_velo_msg;
   lidar_velo_msg.header.frame_id = frame_id_lidar;
-  lidar_velo_msg.header.stamp = ros::Time().fromSec(velo_timestamps_[current_frame_index]);
+  lidar_velo_msg.header.stamp = ros::Time().fromSec(lidar_velo_timestamps_[current_frame_index]);
   FillDataToRosMsgByBinFile(lidar_velo_filenames[current_frame_index].string(), data_3d_raw_lidar_extension, lidar_velo_msg);
-  velo_pub_.publish(lidar_velo_msg);
+  lidar_velo_pub_.publish(lidar_velo_msg);
   // LOG(INFO) << "Data3DRawPub : " << GetCurrentTimestamp() << " , " << current_frame_index_;
   current_frame_index++;
 }

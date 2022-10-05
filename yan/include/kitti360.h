@@ -51,13 +51,13 @@ class Data3DRawPub : public DataRawPub {
   ~Data3DRawPub() override = default;
   void Publish(rosbag::Bag& bag) override;
   // clang-format off
-  double GetCurrentTimestamp() final { return velo_timestamps_[current_frame_index];}
+  double GetCurrentTimestamp() final { return lidar_velo_timestamps_[current_frame_index];}
   // clang-format on
 
  private:
-  std::vector<double> velo_timestamps_;// velodyne
+  std::vector<double> lidar_velo_timestamps_;// velodyne
   std::vector<fs::path> lidar_velo_filenames;
-  ros::Publisher velo_pub_;
+  ros::Publisher lidar_velo_pub_;
 };
 
 }// namespace kitti360
