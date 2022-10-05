@@ -24,9 +24,10 @@ struct Config {
   std::string data_3d_raw_dir{"data_3d_raw/"};
   std::string data_3d_raw_lidar_extension{".bin"};
   std::string sequence_number{"0003"};
-  std::string sequence_sync{""};
-  std::string sequence_extract{};
+  std::string sequence_sync;
+  std::string sequence_extract;
 
+  std::string topic_name_imu{"kitti360/data_imu_raw/data_imu_raw"};
   std::string topic_name_left_perspective{"kitti360/data_2d_raw/left_perspective"};
   std::string topic_name_right_perspective{"kitti360/data_2d_raw/right_perspective"};
   std::string topic_name_lidar_velo{"kitti360/data_3d_raw/lidar_velo"};
@@ -50,6 +51,7 @@ struct Config {
     sequence_sync = "2013_05_28_drive_" + sequence_number + "_sync/";
     sequence_extract = "2013_05_28_drive_" + sequence_number + "_extract/";
 
+    nh.getParam("kitti360/topic_name_imu", topic_name_imu);
     nh.getParam("kitti360/topic_name_left_perspective", topic_name_left_perspective);
     nh.getParam("kitti360/topic_name_right_perspective", topic_name_right_perspective);
     nh.getParam("kitti360/topic_name_lidar_velo", topic_name_lidar_velo);

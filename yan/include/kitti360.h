@@ -27,6 +27,8 @@ class DataImuRawPub : public DataRawPub {
 
  private:
   std::vector<double> imu_timestamps_;
+  std::vector<fs::path> imu_filenames; // oxts 3003
+  ros::Publisher imu_pub_;
 };
 class Data2DRawPub : public DataRawPub {
  public:

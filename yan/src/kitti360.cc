@@ -10,8 +10,10 @@
 #include <glog/logging.h>
 // for image publish
 #include <opencv2/opencv.hpp>
-// sensor_msgs::PointCloud2Modifier
+// ros message and tools
+#include <sensor_msgs/Imu.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
+#include <tf2/LinearMath/Quaternion.h>
 
 namespace kitti360 {
 
@@ -26,18 +28,18 @@ inline void ReadTimestamps(const std::string& filename, std::vector<double>& tim
 }
 
 inline void ReadFileNamesByDirectory(const std::string& directory, const std::string& extension, std::vector<fs::path>& paths) {
-  if(!fs::is_directory(directory)) {
+  if (!fs::is_directory(directory)) {
     LOG(ERROR) << directory << " is not a directory";
   }
-  for(auto &path : fs::directory_iterator(directory)) {
-    if(path.path().extension() == extension) {
+  for (auto& path : fs::directory_iterator(directory)) {
+    if (path.path().extension() == extension) {
       paths.emplace_back(path.path());
     }
   }
   std::sort(paths.begin(), paths.end());
 }
 
-void FillDataToRosMsgByBinFile(const std::string &filename, const std::string& extension, sensor_msgs::PointCloud2 &msg) {
+void FillDataToRosMsgByBinFile(const std::string& filename, const std::string& extension, sensor_msgs::PointCloud2& msg) {
   // Just fill the msg.data and related fields by the .bin data
   std::ifstream data_file(filename, std::ifstream::in | std::ifstream::binary);
   data_file.seekg(0, std::ios::end);
@@ -54,10 +56,10 @@ void FillDataToRosMsgByBinFile(const std::string &filename, const std::string& e
   // add fields
   std::vector<std::string> name_fields{"x", "y", "z", "intensity"};
   uint32_t offset = 0;
-  for(const auto & name_field : name_fields) {
+  for (const auto& name_field : name_fields) {
     sensor_msgs::PointField field;
     field.name = name_field;
-    field.datatype = 7; // float32
+    field.datatype = 7;// float32
     field.count = 1;
     field.offset = offset;
     offset += 4;
@@ -65,16 +67,75 @@ void FillDataToRosMsgByBinFile(const std::string &filename, const std::string& e
   }
 }
 
+void ReadImuDataFromFile(const std::string& filename, sensor_msgs::Imu& msg) {
+  // Just read the Imu data
+  std::ifstream infile(filename);
+  std::string line, temp;
+  std::stringstream ss;
+  double ax, ay, az, wx, wy, wz, roll, pitch, yaw;
+  auto stream_to_null = [&](int n) -> void {
+    std::string null_str;
+    for (int i = 0; i < n; ++i) ss >> null_str;
+  };
+  getline(infile, line);
+  ss = std::stringstream(line);
+  // lat, lon, alt
+  stream_to_null(3);
+  // roll : range: -pi   .. +pi
+  // pitch : range: -pi/2 .. +pi/2
+  // yaw : range: -pi   .. +pi
+  ss >> roll >> pitch >> yaw;
+  // vn, ve
+  stream_to_null(2);
+  // vf:    forward velocity, i.e. parallel to earth-surface (m/s)
+  // vl:    leftward velocity, i.e. parallel to earth-surface (m/s)
+  // vu:    upward velocity, i.e. perpendicular to earth-surface (m/s)
+  stream_to_null(3);
+  // ax:    acceleration in x, i.e. in direction of vehicle front (m/s^2)
+  // ay:    acceleration in y, i.e. in direction of vehicle left (m/s^2)
+  // az:    acceleration in z, i.e. in direction of vehicle top (m/s^2)
+  ss >> ax >> ay >> az;
+  // af, al, au
+  stream_to_null(3);
+  // wx:    angular rate around x (rad/s)
+  // wy:    angular rate around y (rad/s)
+  // wz:    angular rate around z (rad/s)
+  ss >> wx >> wy >> wz;
+  // wf, wl, wu, pos_accuracy, vel_accuracy, navstat, numsats, posmode, velmode, orimode
+  stream_to_null(10);
+  msg.linear_acceleration.x = ax;
+  msg.linear_acceleration.y = ay;
+  msg.linear_acceleration.z = az;
+  msg.angular_velocity.x = wx;
+  msg.angular_velocity.y = wy;
+  msg.angular_velocity.z = wz;
+  tf2::Quaternion q;
+  q.setRPY(roll, pitch, yaw);
+  msg.orientation.x = q.x();
+  msg.orientation.y = q.y();
+  msg.orientation.z = q.z();
+  msg.orientation.w = q.w();
+  msg.
+}
+
 DataImuRawPub::DataImuRawPub() {
   current_frame_index = 0;
   // Read timestamps
   std::string sequence_dir = home_dir + data_root_dir + data_imu_raw_dir + sequence_extract + "oxts/";
   ReadTimestamps(sequence_dir + "timestamps.txt", imu_timestamps_);
+  ReadFileNamesByDirectory(sequence_dir + "data/", ".txt", imu_filenames);
+
+  imu_pub_ = nh.advertise<sensor_msgs::Imu>(topic_name_imu, 50);
 }
 
 void DataImuRawPub::Publish(rosbag::Bag& bag) {
   std::string left_perspective_img_file_names;
-//  LOG(INFO) << "DataImuRawPub : " << GetCurrentTimestamp() << " , " << current_frame_index_;
+  sensor_msgs::Imu data_imu_current;
+  data_imu_current.header.frame_id = frame_id_imu;
+  data_imu_current.header.stamp = ros::Time().fromSec(imu_timestamps_[current_frame_index]);
+  ReadImuDataFromFile(imu_filenames[current_frame_index].string(), data_imu_current);
+  imu_pub_.publish(data_imu_current);
+  //  LOG(INFO) << "DataImuRawPub : " << GetCurrentTimestamp() << " , " << current_frame_index_;
   current_frame_index++;
 }
 
@@ -87,7 +148,7 @@ Data2DRawPub::Data2DRawPub() {
   ReadFileNamesByDirectory(sequence_dir + "image_00/data_rect/", data_2d_raw_img_extension, left_perspective_img_filenames);
   ReadFileNamesByDirectory(sequence_dir + "image_01/data_rect/", data_2d_raw_img_extension, right_perspective_img_filenames);
   assert(left_perspective_img_filenames.size() == right_perspective_img_filenames.size());
-  if(left_perspective_timestamps_.size() != left_perspective_img_filenames.size()) {
+  if (left_perspective_timestamps_.size() != left_perspective_img_filenames.size()) {
     LOG(ERROR) << "Missing timestamp or data_2d_raw, please check!";
   }
 
@@ -101,7 +162,7 @@ void Data2DRawPub::Publish(rosbag::Bag& bag) {
   cv::Mat right_perspective_img = cv::imread(right_perspective_img_filenames[current_frame_index].string(), cv::IMREAD_GRAYSCALE);
 
   std_msgs::Header header;
-  header.stamp = ros::Time().fromSec(GetCurrentTimestamp()); // use left image as reference
+  header.stamp = ros::Time().fromSec(GetCurrentTimestamp());// use left image as reference
   header.frame_id = frame_id_cam0;
 
   sensor_msgs::ImageConstPtr left_perspective_msg_cptr = cv_bridge::CvImage(header, "mono8", left_perspective_img).toImageMsg();
@@ -118,7 +179,7 @@ Data3DRawPub::Data3DRawPub() {
   ReadTimestamps(sequence_dir + "velodyne_points/timestamps.txt", lidar_velo_timestamps_);
   ReadFileNamesByDirectory(sequence_dir + "velodyne_points/data", data_3d_raw_lidar_extension, lidar_velo_filenames);
   assert(lidar_velo_timestamps_.size() == lidar_velo_filenames.size());
-  if(lidar_velo_timestamps_.size() != lidar_velo_filenames.size()) {
+  if (lidar_velo_timestamps_.size() != lidar_velo_filenames.size()) {
     LOG(ERROR) << "Missing lidar data or timestamp, please check!";
   }
   lidar_velo_pub_ = nh.advertise<sensor_msgs::PointCloud2>(topic_name_lidar_velo, 2);
