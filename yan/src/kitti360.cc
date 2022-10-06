@@ -14,6 +14,8 @@
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
 #include <tf2/LinearMath/Quaternion.h>
+#include <tf2_eigen/tf2_eigen.h>
+#include <tf2_ros/transform_broadcaster.h>
 
 namespace kitti360 {
 
@@ -115,7 +117,26 @@ void ReadImuDataFromFile(const std::string& filename, sensor_msgs::Imu& msg) {
   msg.orientation.y = q.y();
   msg.orientation.z = q.z();
   msg.orientation.w = q.w();
-  msg.
+}
+
+template <typename T>
+void ReadPosesByFileName(const std::string &filename, const int&rows, const int&cols, PoseTypeUnorderedMap<T> &poses) {
+  std::ifstream infile(filename);
+  size_t id;
+  PoseType<T> pose;
+  std::stringstream ss;
+  std::string line;
+  while(getline(infile, line)) {
+    ss = std::stringstream(line);
+    ss >> id;
+    pose = PoseType<T>::Identity();
+    for(int i = 0; i < rows; ++i) {
+      for(int j = 0; j < cols; ++j) {
+        ss >> pose(i, j);
+      }
+    }
+    poses.insert({id, pose});
+  }
 }
 
 DataImuRawPub::DataImuRawPub() {
@@ -135,7 +156,6 @@ void DataImuRawPub::Publish(rosbag::Bag& bag) {
   data_imu_current.header.stamp = ros::Time().fromSec(imu_timestamps_[current_frame_index]);
   ReadImuDataFromFile(imu_filenames[current_frame_index].string(), data_imu_current);
   imu_pub_.publish(data_imu_current);
-  //  LOG(INFO) << "DataImuRawPub : " << GetCurrentTimestamp() << " , " << current_frame_index_;
   current_frame_index++;
 }
 
@@ -155,21 +175,59 @@ Data2DRawPub::Data2DRawPub() {
   image_transport::ImageTransport img_tp(nh);
   left_perspective_pub_ = img_tp.advertise(topic_name_left_perspective, 2);
   right_perspective_pub_ = img_tp.advertise(topic_name_right_perspective, 2);
+
+  std::string data_poses_sequence_dir = home_dir + data_root_dir + data_poses_gt_dir + sequence_sync;
+  // cam0_to_world : id + 4x4 matrix
+  ReadPosesByFileName(data_poses_sequence_dir + "cam0_to_world.txt", 4, 4, data_poses_cam0_to_world_gt_);
+  current_index_cam0_to_world_ = -1;
+  UpdateCam0ToWorldIndex();
+  init_pose_cam0_to_world_ = data_poses_cam0_to_world_gt_[current_index_cam0_to_world_];
+  // imu_to_world : id + 3x4 matrix
+  ReadPosesByFileName(data_poses_sequence_dir + "poses.txt", 3, 4, data_poses_imu_to_world_gt_);
+  current_index_imu_to_world_ = -1;
+  UpdateImuToWorldIndex();
+  init_pose_imu_to_world_ = data_poses_imu_to_world_gt_[current_index_imu_to_world_];
+
+  gt_path_pub_ = nh.advertise<nav_msgs::Path>(topic_name_gt_path, 10);
+  gt_odom_pub_ = nh.advertise<nav_msgs::Odometry>(topic_name_gt_odom, 10);
+  gt_path_world_.header.frame_id = frame_id_world;
+  gt_odom_world_.header.frame_id = frame_id_world;
 }
 
 void Data2DRawPub::Publish(rosbag::Bag& bag) {
-  cv::Mat left_perspective_img = cv::imread(left_perspective_img_filenames[current_frame_index].string(), cv::IMREAD_GRAYSCALE);
-  cv::Mat right_perspective_img = cv::imread(right_perspective_img_filenames[current_frame_index].string(), cv::IMREAD_GRAYSCALE);
-
   std_msgs::Header header;
   header.stamp = ros::Time().fromSec(GetCurrentTimestamp());// use left image as reference
   header.frame_id = frame_id_cam0;
 
+  cv::Mat left_perspective_img = cv::imread(left_perspective_img_filenames[current_frame_index].string(), cv::IMREAD_GRAYSCALE);
+  cv::Mat right_perspective_img = cv::imread(right_perspective_img_filenames[current_frame_index].string(), cv::IMREAD_GRAYSCALE);
   sensor_msgs::ImageConstPtr left_perspective_msg_cptr = cv_bridge::CvImage(header, "mono8", left_perspective_img).toImageMsg();
   sensor_msgs::ImageConstPtr right_perspective_msg_cptr = cv_bridge::CvImage(header, "mono8", right_perspective_img).toImageMsg();
   left_perspective_pub_.publish(left_perspective_msg_cptr);
   right_perspective_pub_.publish(right_perspective_msg_cptr);
-  //  LOG(INFO) << "Data2DRawPub : " << GetCurrentTimestamp() << " , " << current_frame_index_;
+
+  // gt poses : cam0 to world
+  geometry_msgs::PoseStamped pose;
+  pose.header.frame_id = frame_id_world;
+  pose.header.stamp = header.stamp;
+  pose.pose = tf2::toMsg(getCurrentPoseCam0ToWorld());
+  gt_path_world_.poses.emplace_back(std::move(pose));
+  gt_path_pub_.publish(gt_path_world_);
+  // gt odom : cam0 to world
+  gt_odom_world_.header.frame_id = frame_id_world;
+  gt_odom_world_.header.stamp = header.stamp;
+  gt_odom_world_.pose.pose = tf2::toMsg(getCurrentPoseCam0ToWorld());
+  gt_odom_pub_.publish(gt_odom_world_);
+  // tf2 : for RVIZ
+  static tf2_ros::TransformBroadcaster br;
+  geometry_msgs::TransformStamped cam0_to_world = tf2::eigenToTransform(getCurrentPoseCam0ToWorld());
+  cam0_to_world.header.frame_id = frame_id_world;
+  cam0_to_world.header.stamp = header.stamp;
+  cam0_to_world.child_frame_id = frame_id_cam0;
+  br.sendTransform(cam0_to_world);
+  // Don't update if current_frame_index < current_index_cam0_to_world_ as current_index_cam0_to_world_ is not continuous
+  if(current_frame_index == current_index_cam0_to_world_) UpdateCam0ToWorldIndex();
+
   current_frame_index++;
 }
 
@@ -191,7 +249,6 @@ void Data3DRawPub::Publish(rosbag::Bag& bag) {
   lidar_velo_msg.header.stamp = ros::Time().fromSec(lidar_velo_timestamps_[current_frame_index]);
   FillDataToRosMsgByBinFile(lidar_velo_filenames[current_frame_index].string(), data_3d_raw_lidar_extension, lidar_velo_msg);
   lidar_velo_pub_.publish(lidar_velo_msg);
-  // LOG(INFO) << "Data3DRawPub : " << GetCurrentTimestamp() << " , " << current_frame_index_;
   current_frame_index++;
 }
 

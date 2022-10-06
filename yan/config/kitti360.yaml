@@ -6,12 +6,14 @@ kitti360:
   data_3d_raw_dir: "data_3d_raw/"
   data_3d_raw_lidar_extension: ".bin"
   data_calibration_dir: "calibration/"
-  data_poses_dir: "data_poses/"
+  data_poses_gt_dir: "data_poses/"
   sequence_number: "0003"
 
   topic_name_imu: "kitti360/data_imu_raw/data_imu_raw"
   topic_name_left_perspective: "kitti360/data_2d_raw/left_perspective"
   topic_name_right_perspective: "kitti360/data_2d_raw/right_perspective"
   topic_name_lidar_velo: "kitti360/data_3d_raw/lidar_velo"
+  topic_name_gt_path: "kitti360/data_poses/gt_path"
+  topic_name_gt_odom: "kitti360/data_poses/gt_odom"
 
   data_output_dir: "output/"

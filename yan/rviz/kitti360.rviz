@@ -7,6 +7,12 @@ Panels:
         - /Global Options1
         - /Status1
         - /Kitti360RawData1
+        - /Kitti360GroundTruth1
+        - /Axes1
+        - /Axes1/world_plane1
+        - /TF1
+        - /TF1/cam0_to_world1/Frames1
+        - /TF1/cam0_to_world1/Frames1/cam01
       Splitter Ratio: 0.5271739363670349
     Tree Height: 1055
   - Class: rviz/Selection
@@ -58,7 +64,7 @@ Visualization Manager:
           Selectable: true
           Size (Pixels): 3
           Size (m): 0.029999999329447746
-          Style: Flat Squares
+          Style: Points
           Topic: /kitti360/data_3d_raw/lidar_velo
           Unreliable: false
           Use Fixed Frame: true
@@ -75,15 +81,6 @@ Visualization Manager:
           Queue Size: 2
           Transport Hint: compressed
           Unreliable: false
-          Value: true
-        - Alpha: 1
-          Class: rviz/Axes
-          Enabled: true
-          Length: 2
-          Name: Axes
-          Radius: 0.4000000059604645
-          Reference Frame: world
-          Show Trail: false
           Value: true
         - Acceleration properties:
             Acc. vector alpha: 1
@@ -102,12 +99,12 @@ Visualization Manager:
             y_scale: 1
             z_scale: 1
           Class: rviz_imu_plugin/Imu
-          Enabled: true
+          Enabled: false
           Name: Imu
           Queue Size: 10
           Topic: /kitti360/data_imu_raw/data_imu_raw
           Unreliable: false
-          Value: true
+          Value: false
           fixed_frame_orientation: true
       Enabled: true
       Name: Kitti360RawData
@@ -134,7 +131,7 @@ Visualization Manager:
           Radius: 0.029999999329447746
           Shaft Diameter: 0.10000000149011612
           Shaft Length: 0.10000000149011612
-          Topic: /path_gt
+          Topic: /kitti360/data_poses/gt_path
           Unreliable: false
           Value: true
         - Angle Tolerance: 0.10000000149011612
@@ -169,16 +166,99 @@ Visualization Manager:
             Shaft Length: 1
             Shaft Radius: 0.05000000074505806
             Value: Arrow
-          Topic: /odometry_gt
+          Topic: /kitti360/data_poses/gt_odom
           Unreliable: false
           Value: true
       Enabled: true
       Name: Kitti360GroundTruth
+    - Class: rviz/Group
+      Displays:
+        - Alpha: 1
+          Class: rviz/Axes
+          Enabled: false
+          Length: 2
+          Name: world
+          Radius: 0.4000000059604645
+          Reference Frame: world
+          Show Trail: false
+          Value: false
+        - Alpha: 1
+          Class: rviz/Axes
+          Enabled: false
+          Length: 1
+          Name: lidar
+          Radius: 0.10000000149011612
+          Reference Frame: lidar
+          Show Trail: false
+          Value: false
+        - Alpha: 1
+          Class: rviz/Axes
+          Enabled: false
+          Length: 1
+          Name: imu
+          Radius: 0.10000000149011612
+          Reference Frame: imu
+          Show Trail: false
+          Value: false
+        - Alpha: 1
+          Class: rviz/Axes
+          Enabled: false
+          Length: 1
+          Name: cam0
+          Radius: 0.10000000149011612
+          Reference Frame: cam0
+          Show Trail: false
+          Value: false
+        - Alpha: 0.5
+          Cell Size: 1000
+          Class: rviz/Grid
+          Color: 255; 255; 255
+          Enabled: true
+          Line Style:
+            Line Width: 0.029999999329447746
+            Value: Lines
+          Name: world_plane
+          Normal Cell Count: 0
+          Offset:
+            X: 0
+            Y: 0
+            Z: 0
+          Plane: XY
+          Plane Cell Count: 10
+          Reference Frame: world
+          Value: true
+      Enabled: true
+      Name: Axes
+    - Class: rviz/Group
+      Displays:
+        - Class: rviz/TF
+          Enabled: true
+          Frame Timeout: 15
+          Frames:
+            All Enabled: true
+            cam0:
+              Value: true
+            world:
+              Value: true
+          Marker Alpha: 1
+          Marker Scale: 1000
+          Name: cam0_to_world
+          Show Arrows: true
+          Show Axes: true
+          Show Names: true
+          Tree:
+            world:
+              cam0:
+                {}
+          Update Interval: 0
+          Value: true
+      Enabled: true
+      Name: TF
   Enabled: true
   Global Options:
     Background Color: 0; 0; 0
     Default Light: true
-    Fixed Frame: lidar
+    Fixed Frame: world
     Frame Rate: 10
   Name: root
   Tools:
@@ -202,7 +282,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 23.692705154418945
+      Distance: 6972.3466796875
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -210,17 +290,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0
-        Y: 0
-        Z: 0
+        X: 927.9229125976562
+        Y: -423.55810546875
+        Z: -416.1759948730469
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.4003981053829193
+      Pitch: 0.7053980827331543
       Target Frame: <Fixed Frame>
-      Yaw: 2.697211980819702
+      Yaw: 0.6722268462181091
     Saved: ~
 Window Geometry:
   Displays:
@@ -230,7 +310,7 @@ Window Geometry:
   Hide Right Dock: false
   PinholeImage:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd00000004000000000000025b000005f0fc0200000009fb0000001200530065006c0065006300740069006f006e00000001e10000009b000000b000fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000b0fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000006e000005170000018200fffffffb0000001800500069006e0068006f006c00650049006d0061006700650100000591000000cd0000002600fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000015f000005f0fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000006e000005f00000013200fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000c00000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e1000001970000000300000c000000005efc0100000002fb0000000800540069006d0065010000000000000c00000006dc00fffffffb0000000800540069006d006501000000000000045000000000000000000000082e000005f000000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd000000040000000000000303000005f0fc0200000009fb0000001200530065006c0065006300740069006f006e00000001e10000009b000000b000fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000b0fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000006e000005170000018200fffffffb0000001800500069006e0068006f006c00650049006d0061006700650100000591000000cd0000002600fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000015f000005f0fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000006e000005f00000013200fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000c00000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e1000001970000000300000c000000005efc0100000002fb0000000800540069006d0065010000000000000c00000006dc00fffffffb0000000800540069006d0065010000000000000450000000000000000000000786000005f000000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
