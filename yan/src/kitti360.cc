@@ -16,6 +16,8 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_ros/transform_broadcaster.h>
+#include <tf2_ros/static_transform_broadcaster.h>
+#include <tf2_ros/transform_listener.h>
 
 namespace kitti360 {
 
@@ -139,6 +141,81 @@ void ReadPosesByFileName(const std::string &filename, const int&rows, const int&
   }
 }
 
+template <typename T>
+void ReadPosesByFileNameAndField(const std::string &filename, const std::string &field, const int&rows, const int&cols, PoseType<T> &pose) {
+  std::ifstream infile(filename);
+  pose = PoseType<T>::Identity();
+  std::stringstream ss;
+  std::string line, temp;
+  auto read_pose = [&]() ->void {
+    for(int i = 0; i < rows; ++i) {
+      for(int j = 0; j < cols; ++j) {
+        ss >> pose(i, j);
+      }
+    }
+  };
+  if(field.empty()) {
+    // if not get a filed, just read the value as pose
+    getline(infile, line);
+    ss = std::stringstream(line);
+    read_pose();
+    return;
+  }
+  // otherwise there is a filed in the beginning of the input line
+  while(getline(infile, line)) {
+    ss = std::stringstream(line);
+    ss >> temp;
+    if(temp == field) {
+      read_pose();
+      return;
+    }
+  }
+}
+
+DataCalibrationRaw::DataCalibrationRaw() {
+  std::string calibration_dir = home_dir + data_root_dir + data_calibration_dir;
+  calib_camX_to_imu.resize(4);
+  // DataCalibrationRaw files are short lines, it cost few time.
+  for(int i = 0; i < 4; ++i) {
+    ReadPosesByFileNameAndField(calibration_dir + "calib_cam_to_pose.txt", "image_0" + std::to_string(i) + ":", 3, 4, calib_camX_to_imu[i]);
+  }
+  ReadPosesByFileNameAndField(calibration_dir + "calib_cam_to_velo.txt", "", 3, 4, calib_cam0_to_velo);
+  ReadPosesByFileNameAndField(calibration_dir + "calib_sick_to_velo.txt", "", 3, 4, calib_sick_to_velo);
+  ReadPosesByFileNameAndField(calibration_dir + "perspective.txt", "P_rect_00:", 3, 4, calib_P_rect_00);
+  ReadPosesByFileNameAndField(calibration_dir + "perspective.txt", "P_rect_01:", 3, 4, calib_P_rect_01);
+  ReadPosesByFileNameAndField(calibration_dir + "perspective.txt", "R_rect_00:", 3, 3, calib_R_rect_00);
+  ReadPosesByFileNameAndField(calibration_dir + "perspective.txt", "R_rect_01:", 3, 3, calib_R_rect_01);
+}
+
+void DataCalibrationRaw::PublishStaticTransform() {
+  static tf2_ros::StaticTransformBroadcaster static_br;
+  // Coordinate axis : cam0 , IMU , Veledyne
+  // cam 0:        Z           IMU:       X           Velodyne and World:   Z     X
+  //              ^                      ^                                  ^    ^
+  //             /                      /                                   |   /
+  //            /                      /                                    |  /
+  //           *---------> X          *---------> Y                         | /
+  //           |                      |                         Y <---------*
+  //           |                      |
+  //           |                      |
+  //           v  Y                   v Z
+  // It seem that the pose of T_cam0_lidar in the file has already been transformed by the coordinate transform.
+  // But T_cam0_imu is not do the coordinate transform.
+  Eigen::Matrix3d Axis_cam0_imu{
+      {0, 1, 0},
+      {1, 0, 0},
+      {0, 0, 1}};
+  geometry_msgs::TransformStamped T_cam0_imu_ros = tf2::eigenToTransform(calib_camX_to_imu[0].inverse());
+  T_cam0_imu_ros.header.frame_id = frame_id_cam0;
+  T_cam0_imu_ros.child_frame_id = frame_id_imu;
+  static_br.sendTransform(T_cam0_imu_ros);
+
+  geometry_msgs::TransformStamped T_cam0_lidar_ros = tf2::eigenToTransform(calib_cam0_to_velo.inverse());
+  T_cam0_lidar_ros.header.frame_id = frame_id_cam0;
+  T_cam0_lidar_ros.child_frame_id = frame_id_lidar;
+  static_br.sendTransform(T_cam0_lidar_ros);
+}
+
 DataImuRawPub::DataImuRawPub() {
   current_frame_index = 0;
   // Read timestamps
@@ -219,21 +296,18 @@ void Data2DRawPub::Publish(rosbag::Bag& bag) {
   gt_odom_world_.pose.pose = tf2::toMsg(getCurrentPoseCam0ToWorld());
   gt_odom_pub_.publish(gt_odom_world_);
   // tf2 : for RVIZ
+  // Point_target = T_target_source * Point_source
+  // T_target_source is a transform from source to target
+  // ros and eigen in the tail is the type of variable
+  // Point_target is a point in target coordinate ...
   static tf2_ros::TransformBroadcaster br;
-  geometry_msgs::TransformStamped cam0_to_world = tf2::eigenToTransform(getCurrentPoseCam0ToWorld());
-  cam0_to_world.header.frame_id = frame_id_world;
-  cam0_to_world.header.stamp = header.stamp;
-  cam0_to_world.child_frame_id = frame_id_cam0;
-  br.sendTransform(cam0_to_world);
+  geometry_msgs::TransformStamped T_world_cam0_ros = tf2::eigenToTransform(getCurrentPoseCam0ToWorld());
+  T_world_cam0_ros.header.frame_id = frame_id_world;
+  T_world_cam0_ros.header.stamp = header.stamp;
+  T_world_cam0_ros.child_frame_id = frame_id_cam0;
+  br.sendTransform(T_world_cam0_ros);
   // Don't update if current_frame_index < current_index_cam0_to_world_ as current_index_cam0_to_world_ is not continuous
   if(current_frame_index == current_index_cam0_to_world_) UpdateCam0ToWorldIndex();
-
-  geometry_msgs::TransformStamped imu_to_world = tf2::eigenToTransform(getCurrentPoseImuToWorld());
-  imu_to_world.header.frame_id = frame_id_world;
-  imu_to_world.header.stamp = header.stamp;
-  imu_to_world.child_frame_id = frame_id_imu;
-  br.sendTransform(imu_to_world);
-  if(current_frame_index == current_index_imu_to_world_) UpdateImuToWorldIndex();
 
   current_frame_index++;
 }

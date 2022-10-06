@@ -7,7 +7,7 @@ kitti360:
   data_3d_raw_lidar_extension: ".bin"
   data_calibration_dir: "calibration/"
   data_poses_gt_dir: "data_poses/"
-  sequence_number: "0003"
+  sequence_number: "0010"
 
   topic_name_imu: "kitti360/data_imu_raw/data_imu_raw"
   topic_name_left_perspective: "kitti360/data_2d_raw/left_perspective"

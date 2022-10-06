@@ -33,6 +33,20 @@ using PoseTypeUnorderedMap =
                 std::hash<size_t>, std::equal_to<size_t>,
                 Eigen::aligned_allocator<std::pair<const size_t, PoseType<T>>>>;
 
+struct DataCalibrationRaw : public Config {
+ public:
+  DataCalibrationRaw();
+  void PublishStaticTransform();
+  // camXtoImu[i] : camX_to_imu, X = 0, 1, 2, 3
+  PoseTypeVector<double> calib_camX_to_imu;
+  PoseType<double> calib_cam0_to_velo;
+  PoseType<double> calib_sick_to_velo;
+  PoseType<double> calib_P_rect_00;
+  PoseType<double> calib_P_rect_01;
+  PoseType<double> calib_R_rect_00;
+  PoseType<double> calib_R_rect_01;
+};
+
 class DataImuRawPub : public DataRawPub {
  public:
   DataImuRawPub();
@@ -68,6 +82,7 @@ class Data2DRawPub : public DataRawPub {
   // clang-format on
 
  private:
+
   std::vector<double> left_perspective_timestamps_;
   std::vector<double> right_perspective_timestamps_;
   std::vector<fs::path> left_perspective_img_filenames;
@@ -98,7 +113,6 @@ class Data3DRawPub : public DataRawPub {
   // clang-format off
   double GetCurrentTimestamp() final { return lidar_velo_timestamps_[current_frame_index];}
   // clang-format on
-
  private:
   std::vector<double> lidar_velo_timestamps_;// velodyne
   std::vector<fs::path> lidar_velo_filenames;

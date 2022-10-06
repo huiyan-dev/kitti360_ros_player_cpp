@@ -15,6 +15,8 @@ int main(int argc, char **argv){
   kitti360::DataImuRawPub data_imu_raw_pub;
   kitti360::Data2DRawPub data_2d_raw_pub;
   kitti360::Data3DRawPub data_3d_raw_pub;
+  kitti360::DataCalibrationRaw data_calibration_raw_pub;
+  data_calibration_raw_pub.PublishStaticTransform();
 
   rosbag::Bag kitti360_bag;
 
