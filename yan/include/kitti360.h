@@ -58,6 +58,7 @@ class Data2DRawPub : public DataRawPub {
   // inline functions : getters
   double GetCurrentTimestamp() final { return left_perspective_timestamps_[current_frame_index];}
   const PoseType<double>& getCurrentPoseCam0ToWorld() const {return data_poses_cam0_to_world_gt_.find(current_index_cam0_to_world_)->second;}
+  const PoseType<double>& getCurrentPoseImuToWorld() const {return data_poses_imu_to_world_gt_.find(current_index_imu_to_world_)->second;}
   // inline functions : setters
 
   // inline functions : others
@@ -81,8 +82,8 @@ class Data2DRawPub : public DataRawPub {
   PoseType<double> init_pose_cam0_to_world_;
   PoseTypeUnorderedMap<double> data_poses_imu_to_world_gt_;
   PoseType<double> init_pose_imu_to_world_;
-  int current_index_cam0_to_world_;
-  int current_index_imu_to_world_;
+  size_t current_index_cam0_to_world_;
+  size_t current_index_imu_to_world_;
   // for RVIZ show
   ros::Publisher gt_path_pub_;
   ros::Publisher gt_odom_pub_;

@@ -228,6 +228,13 @@ void Data2DRawPub::Publish(rosbag::Bag& bag) {
   // Don't update if current_frame_index < current_index_cam0_to_world_ as current_index_cam0_to_world_ is not continuous
   if(current_frame_index == current_index_cam0_to_world_) UpdateCam0ToWorldIndex();
 
+  geometry_msgs::TransformStamped imu_to_world = tf2::eigenToTransform(getCurrentPoseImuToWorld());
+  imu_to_world.header.frame_id = frame_id_world;
+  imu_to_world.header.stamp = header.stamp;
+  imu_to_world.child_frame_id = frame_id_imu;
+  br.sendTransform(imu_to_world);
+  if(current_frame_index == current_index_imu_to_world_) UpdateImuToWorldIndex();
+
   current_frame_index++;
 }
 

@@ -8,11 +8,9 @@ Panels:
         - /Status1
         - /Kitti360RawData1
         - /Kitti360GroundTruth1
-        - /Axes1
         - /Axes1/world_plane1
-        - /TF1
         - /TF1/cam0_to_world1/Frames1
-        - /TF1/cam0_to_world1/Frames1/cam01
+        - /TF1/cam0_to_world1/Tree1
       Splitter Ratio: 0.5271739363670349
     Tree Height: 1055
   - Class: rviz/Selection
@@ -99,12 +97,12 @@ Visualization Manager:
             y_scale: 1
             z_scale: 1
           Class: rviz_imu_plugin/Imu
-          Enabled: false
+          Enabled: true
           Name: Imu
           Queue Size: 10
           Topic: /kitti360/data_imu_raw/data_imu_raw
           Unreliable: false
-          Value: false
+          Value: true
           fixed_frame_orientation: true
       Enabled: true
       Name: Kitti360RawData
@@ -238,6 +236,8 @@ Visualization Manager:
             All Enabled: true
             cam0:
               Value: true
+            imu:
+              Value: true
             world:
               Value: true
           Marker Alpha: 1
@@ -249,6 +249,8 @@ Visualization Manager:
           Tree:
             world:
               cam0:
+                {}
+              imu:
                 {}
           Update Interval: 0
           Value: true
@@ -282,7 +284,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 6972.3466796875
+      Distance: 3326.126953125
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -290,17 +292,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 927.9229125976562
-        Y: -423.55810546875
-        Z: -416.1759948730469
+        X: 1328.9876708984375
+        Y: -596.9630126953125
+        Z: -660.4113159179688
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.7053980827331543
+      Pitch: 0.5803981423377991
       Target Frame: <Fixed Frame>
-      Yaw: 0.6722268462181091
+      Yaw: 0.3872271180152893
     Saved: ~
 Window Geometry:
   Displays:
