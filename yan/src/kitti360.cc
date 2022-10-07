@@ -283,7 +283,7 @@ void Data2DRawPub::Publish() {
   left_perspective_pub_.publish(left_perspective_msg_cptr);
   right_perspective_pub_.publish(right_perspective_msg_cptr);
 
-  auto cur_pose = getCurrentPoseCam0ToWorld().inverse();
+  auto cur_pose = getCurrentPoseCam0ToWorld();
   // gt poses : cam0 to world
   geometry_msgs::PoseStamped pose_stamp;
   pose_stamp.header.frame_id = frame_id_world;
