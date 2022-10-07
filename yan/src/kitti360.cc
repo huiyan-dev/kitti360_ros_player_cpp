@@ -187,24 +187,24 @@ DataCalibrationRaw::DataCalibrationRaw() {
   ReadPosesByFileNameAndField(calibration_dir + "perspective.txt", "R_rect_01:", 3, 3, calib_R_rect_01);
 }
 
+// Coordinate axis : cam0 , IMU , Veledyne
+// cam 0:        Z           IMU:       X           Velodyne and World:   Z     X
+//              ^                      ^                                  ^    ^
+//             /                      /                                   |   /
+//            /                      /                                    |  /
+//           *---------> X          *---------> Y                         | /
+//           |                      |                         Y <---------*
+//           |                      |
+//           |                      |
+//           v  Y                   v Z
+// eg : imu -> cam0   Eigen::Matrix3d Axis_cam0_imu{
+//                                     {0, 1, 0},
+//                                     {1, 0, 0},
+//                                     {0, 0, 1}};
+// All the poses in the kitti360 files has already been transformed by the coordinate transform.
 void DataCalibrationRaw::PublishStaticTransform() {
   static tf2_ros::StaticTransformBroadcaster static_br;
-  // Coordinate axis : cam0 , IMU , Veledyne
-  // cam 0:        Z           IMU:       X           Velodyne and World:   Z     X
-  //              ^                      ^                                  ^    ^
-  //             /                      /                                   |   /
-  //            /                      /                                    |  /
-  //           *---------> X          *---------> Y                         | /
-  //           |                      |                         Y <---------*
-  //           |                      |
-  //           |                      |
-  //           v  Y                   v Z
-  // It seem that the pose of T_cam0_lidar in the file has already been transformed by the coordinate transform.
-  // But T_cam0_imu is not do the coordinate transform.
-  Eigen::Matrix3d Axis_cam0_imu{
-      {0, 1, 0},
-      {1, 0, 0},
-      {0, 0, 1}};
+
   geometry_msgs::TransformStamped T_cam0_imu_ros = tf2::eigenToTransform(calib_camX_to_imu[0].inverse());
   T_cam0_imu_ros.header.frame_id = frame_id_cam0;
   T_cam0_imu_ros.child_frame_id = frame_id_imu;
