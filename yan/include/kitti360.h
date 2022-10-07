@@ -68,6 +68,7 @@ class Data2DRawPub : public DataRawPub {
   Data2DRawPub();
   ~Data2DRawPub() override = default;
   void Publish() override;
+  void OdometryCallBack(const nav_msgs::Odometry::ConstPtr &odom);
   // clang-format off
   // inline functions : getters
   double GetCurrentTimestamp() final { return left_perspective_timestamps_[current_frame_index];}
@@ -93,6 +94,8 @@ class Data2DRawPub : public DataRawPub {
   // for RVIZ show
   ros::Publisher gt_path_pub_;
   ros::Publisher gt_odom_pub_;
+  ros::Subscriber gt_odom_sub_;
+
   nav_msgs::Path gt_path_world_;
   nav_msgs::Odometry gt_odom_world_;
 };

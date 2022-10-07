@@ -40,6 +40,7 @@ int main(int argc, char **argv){
       data_3d_raw_pub.Publish();
     }
     frame_idx++;
+    ros::spinOnce();
     loop_rate.sleep();
   }
   return 0;

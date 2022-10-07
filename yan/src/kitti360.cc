@@ -309,10 +309,26 @@ Data2DRawPub::Data2DRawPub() {
   data_poses_imu_to_world_gt_.resize(left_perspective_img_filenames.size());
   ReadPosesByFileName(data_poses_sequence_dir + "poses.txt", 3, 4, data_poses_imu_to_world_gt_);
 
-  gt_path_pub_ = nh.advertise<nav_msgs::Path>(topic_name_gt_path, 10);
+  gt_path_pub_ = nh.advertise<nav_msgs::Path>(topic_name_gt_path, 10, true);
   gt_odom_pub_ = nh.advertise<nav_msgs::Odometry>(topic_name_gt_odom, 10);
+  gt_odom_sub_ = nh.subscribe<nav_msgs::Odometry>(topic_name_gt_odom, 10, &Data2DRawPub::OdometryCallBack, this, ros::TransportHints().tcpNoDelay());
+}
+
+void Data2DRawPub::OdometryCallBack(const nav_msgs::Odometry::ConstPtr &odom_msg) {
+  geometry_msgs::PoseStamped pose;
+  pose.header.stamp = odom_msg->header.stamp;
+  pose.header.frame_id = frame_id_world;
+  pose.pose.position.x = odom_msg->pose.pose.position.x;
+  pose.pose.position.y = odom_msg->pose.pose.position.y;
+  pose.pose.position.z = odom_msg->pose.pose.position.z;
+  pose.pose.orientation.x = odom_msg->pose.pose.orientation.x;
+  pose.pose.orientation.y = odom_msg->pose.pose.orientation.y;
+  pose.pose.orientation.z = odom_msg->pose.pose.orientation.z;
+  pose.pose.orientation.w = odom_msg->pose.pose.orientation.w;
+  gt_path_world_.poses.push_back(pose);
+  gt_path_world_.header.stamp = pose.header.stamp;
   gt_path_world_.header.frame_id = frame_id_world;
-  gt_odom_world_.header.frame_id = frame_id_world;
+  gt_path_pub_.publish(gt_path_world_);
 }
 
 void Data2DRawPub::Publish() {
@@ -329,14 +345,15 @@ void Data2DRawPub::Publish() {
 
   auto cur_pose = getCurrentPoseCam0ToWorld();
   // gt poses : cam0 to world
-  geometry_msgs::PoseStamped pose_stamp;
-  pose_stamp.header.frame_id = frame_id_world;
-  pose_stamp.header.stamp = header.stamp;
-  pose_stamp.pose = tf2::toMsg(cur_pose);
-  gt_path_world_.poses.push_back(pose_stamp);
-  gt_path_pub_.publish(gt_path_world_);
+//  geometry_msgs::PoseStamped pose_stamp;
+//  pose_stamp.header.frame_id = frame_id_world;
+//  pose_stamp.header.stamp = header.stamp;
+//  pose_stamp.pose = tf2::toMsg(cur_pose);
+//  gt_path_world_.poses.push_back(pose_stamp);
+//  gt_path_pub_.publish(gt_path_world_);
   // gt odom : cam0 to world
   gt_odom_world_.header.frame_id = frame_id_world;
+  gt_odom_world_.child_frame_id = frame_id_cam0;
   gt_odom_world_.header.stamp = header.stamp;
   gt_odom_world_.pose.pose = tf2::toMsg(cur_pose);
   gt_odom_pub_.publish(gt_odom_world_);
