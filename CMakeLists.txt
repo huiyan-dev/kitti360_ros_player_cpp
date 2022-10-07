@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(yan-slam)
+project(kitti360_ros_player_cpp)
 
 ## Compile as C++14, supported in ROS Kinetic and newer
 set(CMAKE_BUILD_TYPE "release")

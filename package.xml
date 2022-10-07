@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>yan-slam</name>
+  <name>kitti360_ros_player_cpp</name>
   <version>1.0.0</version>
   <description>The package to publish kitti360 dataset to ros and write bag files.</description>
   <maintainer email="huiyanliu@buaa.edu.cn">huiyan</maintainer>
