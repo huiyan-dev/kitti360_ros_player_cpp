@@ -283,17 +283,18 @@ void Data2DRawPub::Publish() {
   left_perspective_pub_.publish(left_perspective_msg_cptr);
   right_perspective_pub_.publish(right_perspective_msg_cptr);
 
+  auto cur_pose = getCurrentPoseCam0ToWorld().inverse();
   // gt poses : cam0 to world
-  geometry_msgs::PoseStamped pose;
-  pose.header.frame_id = frame_id_world;
-  pose.header.stamp = header.stamp;
-  pose.pose = tf2::toMsg(getCurrentPoseCam0ToWorld());
-  gt_path_world_.poses.emplace_back(std::move(pose));
+  geometry_msgs::PoseStamped pose_stamp;
+  pose_stamp.header.frame_id = frame_id_world;
+  pose_stamp.header.stamp = header.stamp;
+  pose_stamp.pose = tf2::toMsg(cur_pose);
+  gt_path_world_.poses.push_back(pose_stamp);
   gt_path_pub_.publish(gt_path_world_);
   // gt odom : cam0 to world
   gt_odom_world_.header.frame_id = frame_id_world;
   gt_odom_world_.header.stamp = header.stamp;
-  gt_odom_world_.pose.pose = tf2::toMsg(getCurrentPoseCam0ToWorld());
+  gt_odom_world_.pose.pose = tf2::toMsg(cur_pose);
   gt_odom_pub_.publish(gt_odom_world_);
   // tf2 : for RVIZ
   // Point_target = T_target_source * Point_source
@@ -301,7 +302,7 @@ void Data2DRawPub::Publish() {
   // ros and eigen in the tail is the type of variable
   // Point_target is a point in target coordinate ...
   static tf2_ros::TransformBroadcaster br;
-  geometry_msgs::TransformStamped T_world_cam0_ros = tf2::eigenToTransform(getCurrentPoseCam0ToWorld());
+  geometry_msgs::TransformStamped T_world_cam0_ros = tf2::eigenToTransform(cur_pose);
   T_world_cam0_ros.header.frame_id = frame_id_world;
   T_world_cam0_ros.header.stamp = header.stamp;
   T_world_cam0_ros.child_frame_id = frame_id_cam0;
