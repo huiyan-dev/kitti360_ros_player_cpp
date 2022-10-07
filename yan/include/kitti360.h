@@ -71,14 +71,9 @@ class Data2DRawPub : public DataRawPub {
   // clang-format off
   // inline functions : getters
   double GetCurrentTimestamp() final { return left_perspective_timestamps_[current_frame_index];}
-  const PoseType<double>& getCurrentPoseCam0ToWorld() const {return data_poses_cam0_to_world_gt_.find(current_index_cam0_to_world_)->second;}
-  const PoseType<double>& getCurrentPoseImuToWorld() const {return data_poses_imu_to_world_gt_.find(current_index_imu_to_world_)->second;}
+  const PoseType<double>& getCurrentPoseCam0ToWorld() const {return data_poses_cam0_to_world_gt_[current_frame_index];}
+  const PoseType<double>& getCurrentPoseImuToWorld() const {return data_poses_imu_to_world_gt_[current_frame_index];}
   // inline functions : setters
-
-  // inline functions : others
-  // The fist gt pose always small (and step is 1 almost), so this loop is efficient.
-  void UpdateCam0ToWorldIndex() {current_index_cam0_to_world_++; while(data_poses_cam0_to_world_gt_.find(current_index_cam0_to_world_) == data_poses_cam0_to_world_gt_.end()) current_index_cam0_to_world_++;}
-  void UpdateImuToWorldIndex() {current_index_imu_to_world_++; while(data_poses_imu_to_world_gt_.find(current_index_imu_to_world_) == data_poses_imu_to_world_gt_.end()) current_index_imu_to_world_++;}
   // clang-format on
 
  private:
@@ -93,12 +88,8 @@ class Data2DRawPub : public DataRawPub {
   // The world is the center of all sequences
   // Here use cam0_to_world as ground truth
   // The data_poses_* is not continuous(but just a few frames).
-  PoseTypeUnorderedMap<double> data_poses_cam0_to_world_gt_;
-  PoseType<double> init_pose_cam0_to_world_;
-  PoseTypeUnorderedMap<double> data_poses_imu_to_world_gt_;
-  PoseType<double> init_pose_imu_to_world_;
-  size_t current_index_cam0_to_world_;
-  size_t current_index_imu_to_world_;
+  PoseTypeVector<double> data_poses_cam0_to_world_gt_;
+  PoseTypeVector<double> data_poses_imu_to_world_gt_;
   // for RVIZ show
   ros::Publisher gt_path_pub_;
   ros::Publisher gt_odom_pub_;

@@ -121,13 +121,28 @@ void ReadImuDataFromFile(const std::string& filename, sensor_msgs::Imu& msg) {
   msg.orientation.w = q.w();
 }
 
+template<typename T>
+PoseType<T> InterpolatePoseType(const T &t, const PoseType<T> &p1, const PoseType<T> &p2) {
+  PoseType<T> ret = PoseType<T>::Identity();
+  Eigen::Quaternion<T> q1; q1 = p1.rotation();
+  Eigen::Quaternion<T> q2; q2 = p2.rotation();
+  Eigen::Quaternion<T> q3 = q1.template slerp(t, q2);
+  ret.template prerotate(q3);
+  ret.template pretranslate((1 - t) * p1.translation() + t * p2.translation());
+  return ret;
+}
+
 template <typename T>
-void ReadPosesByFileName(const std::string &filename, const int&rows, const int&cols, PoseTypeUnorderedMap<T> &poses) {
+void ReadPosesByFileName(const std::string &filename, const int&rows, const int&cols, PoseTypeVector<T> &poses) {
+  if(poses.empty()) {
+    LOG(WARNING) << "Poses is empty, please check.";
+  }
   std::ifstream infile(filename);
-  size_t id;
+  size_t id, cnt = 0;
   PoseType<T> pose;
   std::stringstream ss;
   std::string line;
+  std::vector<bool> is_pose_available(poses.size(), false);
   while(getline(infile, line)) {
     ss = std::stringstream(line);
     ss >> id;
@@ -137,7 +152,39 @@ void ReadPosesByFileName(const std::string &filename, const int&rows, const int&
         ss >> pose(i, j);
       }
     }
-    poses.insert({id, pose});
+    poses[id] = pose;
+    is_pose_available[id] = true;
+    cnt++;
+  }
+  if(cnt == poses.size()) return;
+  // ensure the left has a pose value
+  size_t t = 0;
+  while(!is_pose_available[t]) t++;
+  while(t > 0) {
+    poses[t - 1] = poses[t];
+    is_pose_available[t - 1] = true;
+    t--;
+  };
+  // do the interpolation
+  for(size_t i = 0; i < poses.size(); ++i) {
+    if(!is_pose_available[i]) {
+      size_t left = i - 1, right = i + 1;
+      while(right < poses.size() && !is_pose_available[right]) right++;
+      if(right < poses.size()) {
+        // Just use the frame num as interpolate rate
+        while(i < right) {
+          T rate = (T)((long double)(i - left) / (right - left));
+          poses[i] = InterpolatePoseType<T>(rate, poses[left], poses[right]);
+          i++;
+        }
+      } else {
+        while(left < poses.size() - 1) {
+          poses[left + 1] = poses[left];
+          left++;
+        }
+        return ;
+      }
+    }
   }
 }
 
@@ -254,16 +301,13 @@ Data2DRawPub::Data2DRawPub() {
   right_perspective_pub_ = img_tp.advertise(topic_name_right_perspective, 2);
 
   std::string data_poses_sequence_dir = home_dir + data_root_dir + data_poses_gt_dir + sequence_sync;
+  // It will interpolate while kitti360 gt poses is not continuous
   // cam0_to_world : id + 4x4 matrix
+  data_poses_cam0_to_world_gt_.resize(left_perspective_img_filenames.size());
   ReadPosesByFileName(data_poses_sequence_dir + "cam0_to_world.txt", 4, 4, data_poses_cam0_to_world_gt_);
-  current_index_cam0_to_world_ = -1;
-  UpdateCam0ToWorldIndex();
-  init_pose_cam0_to_world_ = data_poses_cam0_to_world_gt_[current_index_cam0_to_world_];
   // imu_to_world : id + 3x4 matrix
+  data_poses_imu_to_world_gt_.resize(left_perspective_img_filenames.size());
   ReadPosesByFileName(data_poses_sequence_dir + "poses.txt", 3, 4, data_poses_imu_to_world_gt_);
-  current_index_imu_to_world_ = -1;
-  UpdateImuToWorldIndex();
-  init_pose_imu_to_world_ = data_poses_imu_to_world_gt_[current_index_imu_to_world_];
 
   gt_path_pub_ = nh.advertise<nav_msgs::Path>(topic_name_gt_path, 10);
   gt_odom_pub_ = nh.advertise<nav_msgs::Odometry>(topic_name_gt_odom, 10);
@@ -307,8 +351,6 @@ void Data2DRawPub::Publish() {
   T_world_cam0_ros.header.stamp = header.stamp;
   T_world_cam0_ros.child_frame_id = frame_id_cam0;
   br.sendTransform(T_world_cam0_ros);
-  // Don't update if current_frame_index < current_index_cam0_to_world_ as current_index_cam0_to_world_ is not continuous
-  if(current_frame_index == current_index_cam0_to_world_) UpdateCam0ToWorldIndex();
 
   current_frame_index++;
 }

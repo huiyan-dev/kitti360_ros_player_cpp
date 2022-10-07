@@ -4,16 +4,16 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Global Options1
         - /Status1
         - /Kitti360RawData1
         - /Kitti360RawData1/Imu1/Box properties1
         - /Kitti360RawData1/Imu1/Axes properties1
         - /Kitti360RawData1/Imu1/Acceleration properties1
-        - /Kitti360GroundTruth1
         - /Kitti360GroundTruth1/Path1
         - /Kitti360GroundTruth1/Odometry1/Covariance1/Position1
-        - /Axes1
         - /Axes1/cam01
+        - /TF1/tf21
       Splitter Ratio: 0.8311499357223511
     Tree Height: 1026
   - Class: rviz/Selection
@@ -86,7 +86,7 @@ Visualization Manager:
         - Acceleration properties:
             Acc. vector alpha: 1
             Acc. vector color: 192; 153; 255
-            Acc. vector scale: 0.20000000298023224
+            Acc. vector scale: 0.10000000149011612
             Derotate acceleration: true
             Enable acceleration: true
           Axes properties:
@@ -96,16 +96,16 @@ Visualization Manager:
             Box alpha: 1
             Box color: 92; 53; 102
             Enable box: true
-            x_scale: 0.30000001192092896
-            y_scale: 0.30000001192092896
-            z_scale: 0.30000001192092896
+            x_scale: 0.10000000149011612
+            y_scale: 0.10000000149011612
+            z_scale: 0.10000000149011612
           Class: rviz_imu_plugin/Imu
-          Enabled: true
+          Enabled: false
           Name: Imu
           Queue Size: 10
           Topic: /kitti360/data_imu_raw/data_imu_raw
           Unreliable: false
-          Value: true
+          Value: false
           fixed_frame_orientation: false
       Enabled: true
       Name: Kitti360RawData
@@ -185,13 +185,13 @@ Visualization Manager:
           Value: false
         - Alpha: 1
           Class: rviz/Axes
-          Enabled: false
+          Enabled: true
           Length: 1
           Name: lidar
           Radius: 0.20000000298023224
           Reference Frame: lidar
           Show Trail: false
-          Value: false
+          Value: true
         - Alpha: 1
           Class: rviz/Axes
           Enabled: true
@@ -228,26 +228,39 @@ Visualization Manager:
           Plane Cell Count: 10
           Reference Frame: world
           Value: false
-      Enabled: true
+      Enabled: false
       Name: Axes
     - Class: rviz/Group
       Displays:
         - Class: rviz/TF
-          Enabled: false
+          Enabled: true
           Frame Timeout: 15
           Frames:
             All Enabled: false
+            cam0:
+              Value: true
+            imu:
+              Value: true
+            lidar:
+              Value: true
+            world:
+              Value: true
           Marker Alpha: 1
-          Marker Scale: 1000
+          Marker Scale: 1
           Name: tf2
           Show Arrows: true
           Show Axes: true
           Show Names: true
           Tree:
-            {}
+            world:
+              cam0:
+                imu:
+                  {}
+                lidar:
+                  {}
           Update Interval: 0
-          Value: false
-      Enabled: false
+          Value: true
+      Enabled: true
       Name: TF
   Enabled: true
   Global Options:
@@ -277,7 +290,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 13.326626777648926
+      Distance: 4.684711933135986
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -285,17 +298,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.8248045444488525
-        Y: 1.6133373975753784
-        Z: -0.6752583384513855
+        X: -0.21907348930835724
+        Y: -0.1034916490316391
+        Z: -0.44996482133865356
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6097976565361023
+      Pitch: 0.6803986430168152
       Target Frame: <Fixed Frame>
-      Yaw: 3.1904306411743164
+      Yaw: 0.15223968029022217
     Saved: ~
 Window Geometry:
   Displays:
