@@ -1,10 +1,10 @@
 <launch>
-  <rosparam file="$(find yan-slam)/config/kitti360.yaml" command="load" />
-  <node name = "kitti360_helper" pkg = "yan-slam" type = "kitti360_helper" output = "screen" />
+  <rosparam file="$(find kitti360_ros_player_cpp)/config/kitti360.yaml" command="load" />
+  <node name = "kitti360_helper" pkg = "kitti360_ros_player_cpp" type = "kitti360_helper" output = "screen" />
 
   <arg name="rviz" default="true" />
   <group if="$(arg rviz)">
-      <node launch-prefix="nice" pkg="rviz" type="rviz" name="rviz" args="-d $(find yan-slam)/rviz/kitti360.rviz" />
+      <node launch-prefix="nice" pkg="rviz" type="rviz" name="rviz" args="-d $(find kitti360_ros_player_cpp)/rviz/kitti360.rviz" />
   </group>
 
 </launch>
