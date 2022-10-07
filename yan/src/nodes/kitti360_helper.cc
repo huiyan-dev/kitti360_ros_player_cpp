@@ -1,7 +1,5 @@
 // ROS
 #include <ros/ros.h>
-#include <rosbag/bag.h>
-#include <std_msgs/Header.h>
 // for kitti360 data publish
 #include "kitti360.h"
 
@@ -18,17 +16,10 @@ int main(int argc, char **argv){
   kitti360::DataCalibrationRaw data_calibration_raw_pub;
   data_calibration_raw_pub.PublishStaticTransform();
 
-  rosbag::Bag kitti360_bag;
-
-  size_t frame_idx = 0;
   double cur_time;
-  std_msgs::Header header;
-  header.frame_id = data_imu_raw_pub.frame_id_world;
-
   // note loop_rate is 100 Hz which is imu frequency as the time resolution.
   while(ros::ok){
     cur_time = data_imu_raw_pub.GetCurrentTimestamp();
-    header.stamp = ros::Time().fromSec(cur_time);
     // Just publish it use imu timestamp as reference.
     data_imu_raw_pub.Publish();
     // image perspective and oxts (sync with cam0 at 10 Hz).
@@ -39,7 +30,6 @@ int main(int argc, char **argv){
     if(cur_time >= data_3d_raw_pub.GetCurrentTimestamp()) {
       data_3d_raw_pub.Publish();
     }
-    frame_idx++;
     ros::spinOnce();
     loop_rate.sleep();
   }

@@ -274,6 +274,10 @@ DataImuRawPub::DataImuRawPub() {
 }
 
 void DataImuRawPub::Publish() {
+  if(current_frame_index >= imu_timestamps_.size()) {
+    // LOG(INFO) << "No imu data present!";
+    return ;
+  }
   std::string left_perspective_img_file_names;
   sensor_msgs::Imu data_imu_current;
   data_imu_current.header.frame_id = frame_id_imu;
@@ -332,6 +336,10 @@ void Data2DRawPub::OdometryCallBack(const nav_msgs::Odometry::ConstPtr &odom_msg
 }
 
 void Data2DRawPub::Publish() {
+  if(current_frame_index >= left_perspective_img_filenames.size()) {
+    // LOG(INFO) << "No 2d data present!";
+    return ;
+  }
   std_msgs::Header header;
   header.stamp = ros::Time().fromSec(GetCurrentTimestamp());// use left image as reference
   header.frame_id = frame_id_cam0;
@@ -385,6 +393,10 @@ Data3DRawPub::Data3DRawPub() {
 }
 
 void Data3DRawPub::Publish() {
+  if(current_frame_index >= lidar_velo_timestamps_.size()) {
+    // LOG(INFO) << "No 3d data present!";
+    return ;
+  }
   sensor_msgs::PointCloud2 lidar_velo_msg;
   lidar_velo_msg.header.frame_id = frame_id_lidar;
   lidar_velo_msg.header.stamp = ros::Time().fromSec(lidar_velo_timestamps_[current_frame_index]);
