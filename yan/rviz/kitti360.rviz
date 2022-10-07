@@ -10,8 +10,10 @@ Panels:
         - /Kitti360RawData1/Imu1/Axes properties1
         - /Kitti360RawData1/Imu1/Acceleration properties1
         - /Kitti360GroundTruth1
+        - /Kitti360GroundTruth1/Path1
         - /Kitti360GroundTruth1/Odometry1/Covariance1/Position1
         - /Axes1
+        - /Axes1/cam01
       Splitter Ratio: 0.8311499357223511
     Tree Height: 1026
   - Class: rviz/Selection
@@ -112,13 +114,13 @@ Visualization Manager:
         - Alpha: 1
           Buffer Length: 1
           Class: rviz/Path
-          Color: 138; 15; 66
+          Color: 252; 233; 79
           Enabled: true
           Head Diameter: 0.30000001192092896
           Head Length: 0.20000000298023224
           Length: 0.30000001192092896
           Line Style: Billboards
-          Line Width: 0.10000000149011612
+          Line Width: 0.03999999910593033
           Name: Path
           Offset:
             X: 0
@@ -126,7 +128,7 @@ Visualization Manager:
             Z: 0
           Pose Color: 255; 85; 255
           Pose Style: None
-          Queue Size: 10
+          Queue Size: 50
           Radius: 0.029999999329447746
           Shaft Diameter: 0.10000000149011612
           Shaft Length: 0.10000000149011612
@@ -192,13 +194,13 @@ Visualization Manager:
           Value: false
         - Alpha: 1
           Class: rviz/Axes
-          Enabled: false
+          Enabled: true
           Length: 1
           Name: imu
           Radius: 0.20000000298023224
           Reference Frame: imu
           Show Trail: false
-          Value: false
+          Value: true
         - Alpha: 1
           Class: rviz/Axes
           Enabled: true
@@ -206,7 +208,7 @@ Visualization Manager:
           Name: cam0
           Radius: 0.10000000149011612
           Reference Frame: cam0
-          Show Trail: true
+          Show Trail: false
           Value: true
         - Alpha: 0.5
           Cell Size: 1000
@@ -275,7 +277,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 11.18359375
+      Distance: 13.326626777648926
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -283,17 +285,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.6740454435348511
-        Y: 2.1914596557617188
-        Z: -0.740570068359375
+        X: 0.8248045444488525
+        Y: 1.6133373975753784
+        Z: -0.6752583384513855
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.199796199798584
+      Pitch: 0.6097976565361023
       Target Frame: <Fixed Frame>
-      Yaw: 2.69539475440979
+      Yaw: 3.1904306411743164
     Saved: ~
 Window Geometry:
   Displays:
