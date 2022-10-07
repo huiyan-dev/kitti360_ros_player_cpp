@@ -226,7 +226,7 @@ DataImuRawPub::DataImuRawPub() {
   imu_pub_ = nh.advertise<sensor_msgs::Imu>(topic_name_imu, 50);
 }
 
-void DataImuRawPub::Publish(rosbag::Bag& bag) {
+void DataImuRawPub::Publish() {
   std::string left_perspective_img_file_names;
   sensor_msgs::Imu data_imu_current;
   data_imu_current.header.frame_id = frame_id_imu;
@@ -271,7 +271,7 @@ Data2DRawPub::Data2DRawPub() {
   gt_odom_world_.header.frame_id = frame_id_world;
 }
 
-void Data2DRawPub::Publish(rosbag::Bag& bag) {
+void Data2DRawPub::Publish() {
   std_msgs::Header header;
   header.stamp = ros::Time().fromSec(GetCurrentTimestamp());// use left image as reference
   header.frame_id = frame_id_cam0;
@@ -324,7 +324,7 @@ Data3DRawPub::Data3DRawPub() {
   lidar_velo_pub_ = nh.advertise<sensor_msgs::PointCloud2>(topic_name_lidar_velo, 2);
 }
 
-void Data3DRawPub::Publish(rosbag::Bag& bag) {
+void Data3DRawPub::Publish() {
   sensor_msgs::PointCloud2 lidar_velo_msg;
   lidar_velo_msg.header.frame_id = frame_id_lidar;
   lidar_velo_msg.header.stamp = ros::Time().fromSec(lidar_velo_timestamps_[current_frame_index]);

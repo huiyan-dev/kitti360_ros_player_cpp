@@ -78,7 +78,7 @@ class DataRawPub : public Config {
  public:
   DataRawPub() = default;
   virtual ~DataRawPub() = default;
-  virtual void Publish(rosbag::Bag &bag) = 0;
+  virtual void Publish() = 0;
   virtual double GetCurrentTimestamp() = 0;
 
   size_t current_frame_index{};

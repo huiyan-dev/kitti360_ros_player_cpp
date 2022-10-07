@@ -30,14 +30,14 @@ int main(int argc, char **argv){
     cur_time = data_imu_raw_pub.GetCurrentTimestamp();
     header.stamp = ros::Time().fromSec(cur_time);
     // Just publish it use imu timestamp as reference.
-    data_imu_raw_pub.Publish(kitti360_bag);
+    data_imu_raw_pub.Publish();
     // image perspective and oxts (sync with cam0 at 10 Hz).
     if(cur_time >= data_2d_raw_pub.GetCurrentTimestamp()) {
-      data_2d_raw_pub.Publish(kitti360_bag);
+      data_2d_raw_pub.Publish();
     }
     // point cloud
     if(cur_time >= data_3d_raw_pub.GetCurrentTimestamp()) {
-      data_3d_raw_pub.Publish(kitti360_bag);
+      data_3d_raw_pub.Publish();
     }
     frame_idx++;
     loop_rate.sleep();

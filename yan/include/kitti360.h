@@ -51,7 +51,7 @@ class DataImuRawPub : public DataRawPub {
  public:
   DataImuRawPub();
   ~DataImuRawPub() override = default;
-  void Publish(rosbag::Bag& bag) final;
+  void Publish() final;
   // clang-format off
   double GetCurrentTimestamp() final { return imu_timestamps_[current_frame_index];}
   // clang-format on
@@ -67,7 +67,7 @@ class Data2DRawPub : public DataRawPub {
 
   Data2DRawPub();
   ~Data2DRawPub() override = default;
-  void Publish(rosbag::Bag& bag) override;
+  void Publish() override;
   // clang-format off
   // inline functions : getters
   double GetCurrentTimestamp() final { return left_perspective_timestamps_[current_frame_index];}
@@ -109,7 +109,7 @@ class Data3DRawPub : public DataRawPub {
  public:
   Data3DRawPub();
   ~Data3DRawPub() override = default;
-  void Publish(rosbag::Bag& bag) override;
+  void Publish() override;
   // clang-format off
   double GetCurrentTimestamp() final { return lidar_velo_timestamps_[current_frame_index];}
   // clang-format on
