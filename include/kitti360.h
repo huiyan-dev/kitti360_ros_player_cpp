@@ -73,7 +73,9 @@ class Data2DRawPub : public DataRawPub {
   // inline functions : getters
   double GetCurrentTimestamp() final { return left_perspective_timestamps_[current_frame_index];}
   const PoseType<double>& getCurrentPoseCam0ToWorld() const {return data_poses_cam0_to_world_gt_[current_frame_index];}
+  const PoseType<double>& getInitPoseCam0ToWorld() const {return *data_poses_cam0_to_world_gt_.begin();}
   const PoseType<double>& getCurrentPoseImuToWorld() const {return data_poses_imu_to_world_gt_[current_frame_index];}
+  const PoseType<double>& getInitPoseImuToWorld() const {return *data_poses_imu_to_world_gt_.begin();}
   // inline functions : setters
   // clang-format on
 
