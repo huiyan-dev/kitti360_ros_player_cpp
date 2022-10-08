@@ -352,13 +352,6 @@ void Data2DRawPub::Publish() {
   right_perspective_pub_.publish(right_perspective_msg_cptr);
 
   auto cur_pose = getCurrentPoseCam0ToWorld();
-  // gt poses : cam0 to world
-//  geometry_msgs::PoseStamped pose_stamp;
-//  pose_stamp.header.frame_id = frame_id_world;
-//  pose_stamp.header.stamp = header.stamp;
-//  pose_stamp.pose = tf2::toMsg(cur_pose);
-//  gt_path_world_.poses.push_back(pose_stamp);
-//  gt_path_pub_.publish(gt_path_world_);
   // gt odom : cam0 to world
   gt_odom_world_.header.frame_id = frame_id_world;
   gt_odom_world_.child_frame_id = frame_id_cam0;
