@@ -29,6 +29,7 @@ cd ~/catkin_ws
 catkin_make
 ```
 # Datasets Settings
+## Data structure
 It divides the dataset follow the [official documentation](https://www.cvlibs.net/datasets/kitti-360/documentation.php).
 Mutable configurations is the top 2 level path in the dataset root directory of KITTI-360 as below:
 
@@ -43,7 +44,17 @@ Mutable configurations is the top 2 level path in the dataset root directory of 
         ├── data_poses (sync poses with cam0 at 10 Hz)
     
         ├── data_poses_oxts_extract (raw oxts measurements at 100 Hz)
-
+## Record a rosbag
+An example for record some topics to a rosbag which use for SLAM task.
+```shell
+rosbag record /kitti360/data_2d_raw/left_perspective/compressed 
+              /kitti360/data_2d_raw/right_perspective/compressed
+              /kitti360/data_3d_raw/lidar_velo
+              /kitti360/data_imu_raw/data_imu_raw
+              /kitti360/data_poses/gt_odom
+              /tf_static
+              --repeat-latched  --lz4 --split  --size=4096
+```
 # Example
 For run a visualization in rviz you can run:
 ```shell
